@@ -3857,6 +3857,20 @@ function openAnnexureRightEdit(subjectId){
   document.getElementById('chipOverlay').classList.add('open');
   toast('Edit the old-PRC course details on the right side','info');
 }
+function editAnnexOldCourseName(subjectId){
+  const s=subjects.find(x=>x.id===subjectId);if(!s)return;
+  const eq=equivalences.find(e=>e.subjectId===s.id);if(!eq)return;
+  const name=prompt('Old PRC course name:',eq.oldName||'');
+  if(name===null)return;
+  const trimmed=name.trim();
+  if(!trimmed){toast('Course name cannot be empty','error');return;}
+  eq.oldName=trimmed;
+  const chip=oldPrcPool.find(c=>c.mappedEq===eq.id);
+  if(chip)chip.name=trimmed;
+  saveState();
+  renderAll();
+  toast('Old PRC course name updated successfully','success');
+}
 function openChipModal(id){
   const c=id?oldPrcPool.find(x=>x.id===id):null;
   document.getElementById('chip-edit-id').value=c?c.id:'';
@@ -5766,7 +5780,7 @@ function renderAnnexureForm(){
         <td class="mono">${left.code||'—'}</td><td>${left.name} <button class="chip-x" title="Edit course name" onclick="editAnnexCourseName(${s.id})">✎</button> <button class="chip-x" title="Edit course details" onclick="editSubject(${s.id})">⚙</button></td>
         <td class="mono">${cell(left.L)||0}</td><td class="mono">${cell(left.T)||0}</td><td class="mono">${cell(left.P)||0}</td><td class="mono"><b>${left.C}</b></td><td><b>${left.bk||''}</b></td>
         <td class="mono">${(s.grade||'').toUpperCase()||'—'}</td><td>${isFail?`<b style="color:#8b1a1a">${(s.status==='failed'?'FAIL':s.status==='np'?'NP':s.status==='rc'?'RC':'I')}</b>`:left.term||'—'}</td>
-        ${right?`<td class="mono">${right.code||'—'}</td><td>${right.name}${eq?` <button class="chip-x" title="Edit old-PRC course" onclick="openAnnexureRightEdit(${s.id})">✎</button> <button class="chip-x" title="Remove mapping" onclick="removeEquivalenceById(${eq.id})">✕</button>`:''}</td>
+        ${right?`<td class="mono">${right.code||'—'}</td><td>${right.name}${eq?` <button class="chip-x" title="Edit old-PRC course details" onclick="openAnnexureRightEdit(${s.id})">⚙</button> <button class="chip-x" title="Edit old-PRC course name" onclick="editAnnexOldCourseName(${s.id})">✎</button>`:''}</td>
           <td class="mono">${cell(right.L)||0}</td><td class="mono">${cell(right.T)||0}</td><td class="mono">${cell(right.P)||0}</td><td class="mono"><b>${right.C}</b></td><td><b>${right.bk||''}</b></td>`:`<td colspan="8" class="p-slot">— no equivalent old-PRC course — <button class="chip-x" title="Add old-PRC course" onclick="openAnnexureRightEdit(${s.id})">✎</button></td>`}
       </tr>`;
     });
