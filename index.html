@@ -3290,6 +3290,17 @@ function editSubject(id){
   document.getElementById('m-additional').checked=!!s.additional;
   document.getElementById('modalOverlay').classList.add('open');
 }
+function editAnnexCourseName(id){
+  const s=subjects.find(x=>x.id===id);if(!s)return;
+  const name=prompt('Course name:',s.name||'');
+  if(name===null)return;
+  const trimmed=name.trim();
+  if(!trimmed){toast('Course name cannot be empty','error');return;}
+  s.name=trimmed;
+  saveState();
+  renderAll();
+  toast('Course name updated successfully','success');
+}
 function closeModal(){document.getElementById('modalOverlay').classList.remove('open');}
 function saveModal(){
   const name=document.getElementById('m-name').value.trim();
@@ -5752,7 +5763,7 @@ function renderAnnexureForm(){
       t1sumEarned+=info.earnedCredits;
       const drop=`ondragover="if(dragChipId!==null||catDragIdx!=null){event.preventDefault();this.classList.add('rt-dragover');}" ondragleave="this.classList.remove('rt-dragover')" ondrop="this.classList.remove('rt-dragover');annexDrop(${s.id})"`;
       t1+=`<tr ${drop} draggable="true" ondragstart="dragSubjectId=${s.id};event.dataTransfer.effectAllowed='move'" title="Drag to 🗑 to remove its mapping">
-        <td class="mono">${left.code||'—'}</td><td>${left.name} <button class="chip-x" title="Edit" onclick="editSubject(${s.id})">✎</button></td>
+        <td class="mono">${left.code||'—'}</td><td>${left.name} <button class="chip-x" title="Edit course name" onclick="editAnnexCourseName(${s.id})">✎</button> <button class="chip-x" title="Edit course details" onclick="editSubject(${s.id})">⚙</button></td>
         <td class="mono">${cell(left.L)||0}</td><td class="mono">${cell(left.T)||0}</td><td class="mono">${cell(left.P)||0}</td><td class="mono"><b>${left.C}</b></td><td><b>${left.bk||''}</b></td>
         <td class="mono">${(s.grade||'').toUpperCase()||'—'}</td><td>${isFail?`<b style="color:#8b1a1a">${(s.status==='failed'?'FAIL':s.status==='np'?'NP':s.status==='rc'?'RC':'I')}</b>`:left.term||'—'}</td>
         ${right?`<td class="mono">${right.code||'—'}</td><td>${right.name}${eq?` <button class="chip-x" title="Edit old-PRC course" onclick="openAnnexureRightEdit(${s.id})">✎</button> <button class="chip-x" title="Remove mapping" onclick="removeEquivalenceById(${eq.id})">✕</button>`:''}</td>
@@ -5795,8 +5806,8 @@ function renderAnnexureForm(){
   </tbody></table>
   <h3>I. Course Mapping: Semester-wise <span style="font-weight:400;font-size:11px">(All New Readmitted PRC courses in each semester on the left; equivalent old-prc courses on the right)</span> <button class="chip-x" title="Add a course to Table I" onclick="openAddTable1()">＋ Add course</button>${poolVisibleChips().length?` <button class="chip-x" title="Bring uploaded marksheet courses into Table I" onclick="promoteMarksheetToTable1()">📥 Add ${poolVisibleChips().length} marksheet course(s)</button>`:``}</h3>
   <table><thead>
-    <tr><th colspan="9" style="text-align:center">New (Readmitted) PRC courses — semester-wise</th>
-        <th colspan="8" style="text-align:center">Equivalent Old PRC course / grade-card details</th></tr>
+    <tr><th colspan="9" style="text-align:center">Courses as per the New (Readmitted) PRC</th>
+        <th colspan="8" style="text-align:center">Equivalent Courses that can be mapped in previous PRC</th></tr>
     <tr><th>Course Code</th><th>Course Name</th><th colspan="4" style="text-align:center">Credit Structure<br/>L&nbsp;&nbsp;T&nbsp;&nbsp;P&nbsp;&nbsp;C</th><th>Basket</th><th>Grade</th><th>ET/ST/MU Month-Year</th>
         <th>Course Code</th><th>Course Name</th><th colspan="4" style="text-align:center">Credit Structure<br/>L&nbsp;&nbsp;T&nbsp;&nbsp;P&nbsp;&nbsp;C</th><th>Basket</th><th>Result / Status</th></tr>
   </thead><tbody>${t1||`<tr><td colspan="17" class="p-slot">${poolVisibleChips().length?`<button class="chip-x" onclick="promoteMarksheetToTable1()">📥 Add ${poolVisibleChips().length} uploaded marksheet course(s) to Table I</button> &nbsp;·&nbsp; `:`Upload a marksheet from 📑 Marks, or `}<button class="chip-x" onclick="openAddTable1()">＋ Add a course manually</button></td></tr>`}
