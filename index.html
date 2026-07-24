@@ -4315,12 +4315,13 @@ function semNum(v){
   const r=ROMAN_SEM[String(v).trim().toUpperCase().replace(/^SEM(?:ESTER)?\s*/,'')];
   return r||null;
 }
-const IMPORT_KEYMAP={code:'code',subjectcode:'code',coursecode:'code',name:'name',subject:'name',subjectname:'name',coursename:'name',course:'name',coursetitle:'name',title:'name',sem:'sem',semester:'sem',credits:'credits',credit:'credits',c:'credits',cr:'credits',l:'L',t:'T',p:'P',ltpc:'ltpc',ltpcstructure:'ltpc',basket:'basket',coursebasket:'basket',category:'basket',coursecategory:'basket',type:'type',subjecttype:'type',status:'status',grade:'grade',gradeobtained:'grade',term:'term',passingterm:'term',monthyear:'term',semestermonthyear:'term',additional:'additional',programecode:'prog',programmecode:'prog',programcode:'prog',batch:'batch'};
+const IMPORT_KEYMAP={code:'code',subjectcode:'code',coursecode:'code',subjectid:'code',courseid:'code',subcode:'code',course:'name',name:'name',subject:'name',subjectname:'name',coursename:'name',coursetitle:'name',title:'name',coursetitle1:'name',sem:'sem',semester:'sem',semesterno:'sem',semesterno:'sem',semno:'sem',credits:'credits',credit:'credits',creditpoints:'credits',creditvalue:'credits',creditcount:'credits',c:'credits',cr:'credits',l:'L',t:'T',p:'P',lab:'P',ltpc:'ltpc',ltpcstructure:'ltpc',l_t_p_c:'ltpc',ltpccredits:'ltpc',basket:'basket',coursebasket:'basket',category:'basket',coursecategory:'basket',program:'prog',programme:'prog',programcode:'prog',programecode:'prog',programmecode:'prog',batch:'batch',section:'batch',status:'status',grade:'grade',gradeobtained:'grade',marks:'grade',result:'grade',term:'term',passingterm:'term',monthyear:'term',semestermonthyear:'term',additional:'additional',addl:'additional'};
 function normalizeStatus(v){const s=String(v||'').trim().toLowerCase();
-  if(['completed','passed','pass','cleared','done'].includes(s))return'completed';
-  if(['failed','fail','f','backlog'].includes(s))return'failed';
-  if(['np','notpermitted'].includes(s))return'np';
-  if(['registered','reg','ongoing'].includes(s))return'registered';
+  if(['completed','complete','passed','pass','cleared','clear','done','qualified','earned'].includes(s))return'completed';
+  if(['failed','fail','f','backlog','repeat','reappear','supplementary','supplementaryexam','supplementaryexamfailed'].includes(s))return'failed';
+  if(['np','notpermitted','not-permitted','not permitted'].includes(s))return'np';
+  if(['registered','reg','ongoing','current','enrolled','inprogress','in-progress'].includes(s))return'registered';
+  if(['pending','notyetcleared','not-yet-cleared','awaiting'].includes(s))return'pending';
   return'pending';}
 function normalizeBasket(v,type,name){const b=String(v||'').trim().toUpperCase();
   if(['SC','PC','DE','OE'].includes(b))return b;
@@ -4347,9 +4348,17 @@ function rowsFromObjects(objs){
     const name=String(r.name||'').trim();
     let L=r.L,T=r.T,P=r.P,credits=parseFloat(r.credits);
     if(r.ltpc!==undefined&&String(r.ltpc).trim()!==''){
-      const m=String(r.ltpc).match(/(\d+(?:\.\d+)?)\s*[-–:/ ]+(\d+(?:\.\d+)?)\s*[-–:/ ]+(\d+(?:\.\d+)?)(?:\s*[-–:/ ]+(\d+(?:\.\d+)?))?/);
+      const m=String(r.ltpc).match(/(\d+(?:\.\d+)?)\s*[-–:/, ]+(\d+(?:\.\d+)?)\s*[-–:/, ]+(\d+(?:\.\d+)?)(?:\s*[-–:/, ]+(\d+(?:\.\d+)?))?/);
       if(m){if(L===''||L===undefined)L=m[1];if(T===''||T===undefined)T=m[2];if(P===''||P===undefined)P=m[3];
         if(isNaN(credits)&&m[4]!==undefined)credits=parseFloat(m[4]);}
+    }
+    if((!isNaN(parseFloat(r.credits))&&parseFloat(r.credits)!==0) || (r.credits!==undefined&&String(r.credits).trim()!=='')){
+      credits=parseFloat(r.credits)||0;
+    }
+    if(!isNaN(credits)&&credits>0 && (r.ltpc===undefined || String(r.ltpc).trim()==='')){
+      const d=String(r.credits||'').trim();
+      const m=d.match(/(\d+(?:\.\d+)?)\s*[-–:/, ]+(\d+(?:\.\d+)?)\s*[-–:/, ]+(\d+(?:\.\d+)?)\s*[-–:/, ]+(\d+(?:\.\d+)?)/);
+      if(m){L=m[1];T=m[2];P=m[3];credits=parseFloat(m[4]);}
     }
     const sem=semNum(r.sem)||1;
     const type=(r.type!==undefined&&String(r.type).trim()!=='')?normalizeType(r.type):inferType(name);
@@ -4363,6 +4372,7 @@ function rowsFromObjects(objs){
     if((r.status===undefined||String(r.status).trim()==='')&&sub.grade){          // marks sheets: derive status from grade
       sub.status=gradeToStatus(sub.grade)||'completed';
     }
+    if(sub.code&&!sub.name){const alt=String(r.name||r.subject||r.coursename||'').trim();sub.name=alt;}
     sub.__hasBasket=(r.basket!==undefined&&String(r.basket).trim()!=='');
     sub.__hasType=(r.type!==undefined&&String(r.type).trim()!=='');
     sub.__hasSem=(r.sem!==undefined&&String(r.sem).trim()!=='');
