@@ -2157,7 +2157,10 @@ function loadState(){
 
 // small shared helpers
 function ltpcStr(L,T,P,C){const has=[L,T,P].some(v=>v!==''&&v!==null&&v!==undefined);return has?`${L||0}-${T||0}-${P||0}-${C}`:`${C} cr`;}
-function basketChip(b){return b?`<span class="bk bk-${b}">${b}</span>`:'';}
+function basketChip(b){
+  const label=(b==='PC'?'SC':b);
+  return label?`<span class="bk bk-${b}">${label}</span>`:'';
+}
 function completedCreditsByBasket(){
   const r={SC:0,PC:0,DE:0,OE:0};
   subjects.filter(s=>s.status==='completed'&&!isClearable(s)).forEach(s=>{if(r[s.basket]!==undefined)r[s.basket]+=Number(s.credits)||0;});
@@ -5827,7 +5830,7 @@ function renderAnnexureForm(){
   <table><thead>
     <tr><th colspan="9" style="text-align:center">Courses as per the New (Readmitted) PRC</th>
         <th colspan="8" style="text-align:center">Equivalent Courses that can be mapped in previous PRC</th></tr>
-    <tr><th>Course Code</th><th>Course Name</th><th colspan="4" style="text-align:center">Credit Structure<br/>L&nbsp;&nbsp;T&nbsp;&nbsp;P&nbsp;&nbsp;C</th><th>Basket</th><th>Grade</th><th>ET/ST/MU Month-Year</th>
+    <tr><th>Course Code</th><th>Course Name</th><th colspan="4" style="text-align:center">Credit Structure<br/>L&nbsp;&nbsp;T&nbsp;&nbsp;P&nbsp;&nbsp;C</th><th>Basket</th><th>Grade</th><th>Result / Status</th>
         <th>Course Code</th><th>Course Name</th><th colspan="4" style="text-align:center">Credit Structure<br/>L&nbsp;&nbsp;T&nbsp;&nbsp;P&nbsp;&nbsp;C</th><th>Basket</th><th>Result / Status</th></tr>
   </thead><tbody>${t1||`<tr><td colspan="17" class="p-slot">${poolVisibleChips().length?`<button class="chip-x" onclick="promoteMarksheetToTable1()">📥 Add ${poolVisibleChips().length} uploaded marksheet course(s) to Table I</button> &nbsp;·&nbsp; `:`Upload a marksheet from 📑 Marks, or `}<button class="chip-x" onclick="openAddTable1()">＋ Add a course manually</button></td></tr>`}
   ${t1?`<tr class="tot"><td colspan="6">Total Number of credits Earned</td><td class="mono">${t1sumEarned}</td><td colspan="2"></td><td colspan="5" style="text-align:right">Total Number of credits (New PRC)</td><td class="mono">${t1sumNew}</td><td></td></tr>`:''}
