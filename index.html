@@ -5684,6 +5684,7 @@ function marksAutoAbsorb(){
   if(maxSem>0&&(settings.readmitSem||0)<maxSem+1){settings.readmitSem=Math.min(maxSem+1,9);logAction('🎯',`Readmission semester inferred from marksheets: Sem ${settings.readmitSem}`);}
   const r=settings.readmitSem||0;const cap=r>1?r-1:9;
   const existingByCode=new Map();
+  const seenChipKeys=new Set();
   subjects.forEach(s=>{const k=(s.code||'').toUpperCase();if(k)existingByCode.set(k,s);});
   let fallbackRows=0;
   const mappedBefore=oldPrcPool.filter(c=>c.mappedEq).length;
@@ -5692,12 +5693,15 @@ function marksAutoAbsorb(){
     if(!key)return;
     const grade=String(c.grade||'').toUpperCase();
     let sm=Number(c.sem)||1;if(sm<1)sm=1;if(sm>cap)sm=cap;if(sm>8)sm=8;
+    const chipKey=`${key}|${String(c.name||'').toUpperCase()}|${sm}|${grade}`;
+    if(seenChipKeys.has(chipKey))return;
+    seenChipKeys.add(chipKey);
     oldPrcPool.push({id:nextChipId++,code:c.code,name:c.name||'Course',L:0,T:0,P:0,C:Number(c.credits)||0,sem:sm,grade,term:c.term||'',src:c.__src,mappedEq:null});
     const nm=(c.name||'').trim().toLowerCase();
     const match=existingByCode.get(key)||subjects.find(s=>!s.additional&&((s.code||'').toUpperCase()===key||((s.name||'').trim().toLowerCase()===nm&&nm)));
-    if(!match && ['F','NP','RC','I','NE','NC'].includes(grade)){
-      const fallback={id:nextId++,code:c.code,name:c.name||'Course',credits:Number(c.credits)||0,sem:sm,type:'core',status:gradeToStatus(grade)||'failed',grade, basket:'PC',L:0,T:0,P:0,term:c.term||'',additional:false,src:c.__src};
-      subjects.push(fallback);existingByCode.set(key,fallback);fallbackRows++;
+    if(!match){
+      const placeholder={id:nextId++,code:key,name:c.name||'Course',credits:Number(c.credits)||0,sem:sm,type:'core',status:(['F','NP','RC','I','NE','NC'].includes(grade)?gradeToStatus(grade)||'failed':'completed'),grade, basket:'PC',L:0,T:0,P:0,term:c.term||'',additional:false,src:c.__src};
+      subjects.push(placeholder);existingByCode.set(key,placeholder);if(['F','NP','RC','I','NE','NC'].includes(grade))fallbackRows++;
     }
   });
   autoMapByCode(null,true);
